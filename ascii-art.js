@@ -162,8 +162,8 @@
         (1 - t) ** 3 * points[0][axis] + 3 * (1 - t) ** 2 * t * points[1][axis]
         + 3 * (1 - t) * t * t * points[2][axis] + t ** 3 * points[3][axis]);
       const leaves = [
-        { at: .32, side: -1, length: .76, width: .25, phase: 3.1 },
-        { at: .59, side: 1, length: .9, width: .29, phase: .5 },
+        { at: .32, side: -1, length: 1.18, width: .4, phase: 3.1 },
+        { at: .59, side: 1, length: 1.05, width: .34, phase: .5 },
       ];
       p.save();
       p.lineJoin = 'round';
