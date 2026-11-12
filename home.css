@@ -66,4 +66,29 @@ h1 {
 .linkedin, .instagram { top: calc(22 * var(--u)); }
 .email, .linkedin { left: 0; }
 .github, .instagram { right: 0; }
+.instagram button { display: block; line-height: inherit; }
+.speech-bubble {
+  position: absolute;
+  bottom: calc(100% + 30px);
+  right: -1px;
+  padding: 9px 11px;
+  border-radius: 5px;
+  background: #000;
+  color: #f4f4f4;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -.2px;
+  animation: bubble-in 140ms ease-out;
+}
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 20px;
+  border: 5px solid transparent;
+  border-top-color: #000;
+  border-bottom: 0;
+}
+@keyframes bubble-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 401px) { .home { --u: calc(100vw / 402); } }
+@media (prefers-reduced-motion: reduce) { .speech-bubble { animation: none; } }

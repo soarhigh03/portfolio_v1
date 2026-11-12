@@ -1,5 +1,27 @@
 (() => {
   'use strict';
+  const button = document.getElementById('instagram-button');
+  const note = document.getElementById('instagram-note');
+  const instagram = button.closest('.instagram');
+  const closeNote = () => {
+    note.hidden = true;
+    button.setAttribute('aria-expanded', 'false');
+  };
+  button.addEventListener('click', () => {
+    const open = note.hidden;
+    note.hidden = !open;
+    button.setAttribute('aria-expanded', String(open));
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (!instagram.contains(event.target)) closeNote();
+  });
+  document.addEventListener('focusin', (event) => {
+    if (!instagram.contains(event.target)) closeNote();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeNote();
+  });
+
   // Pick once per page visit. Resizing and returning to the tab retain the scene.
   // Optional parameters allow deterministic visual review, without visible controls.
   const params = new URLSearchParams(location.search);
