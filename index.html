@@ -1,59 +1,27 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Under Construction</title>
-  <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      background-color: #ffffff;
-    }
-
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    /* Mobile overrides */
-    @media (max-width: 768px) {
-      body {
-        align-items: flex-start;
-        overflow-y: auto;
-      }
-    }
-
-    img {
-      display: block;
-    }
-
-    /* Mobile: width matches browser width */
-    @media (max-width: 768px) {
-      img {
-        width: 100vw;
-        height: auto;
-      }
-    }
-
-    /* Desktop/PC: height matches browser height */
-    @media (min-width: 769px) {
-      img {
-        height: 100vh;
-        width: auto;
-      }
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f4f4">
+  <meta name="description" content="Eunwoo (Jade) Choi. Computer science at Seoul National University.">
+  <title>Eunwoo (Jade) Choi</title>
+  <link rel="preload" href="assets/fonts/anonymous-pro-regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="home.css">
 </head>
 <body>
-  <img src="assets/under_construction.png" alt="Under Construction">
+  <main class="home" aria-labelledby="name">
+    <div class="artwork" aria-hidden="true"><canvas id="ascii-art"></canvas></div>
+    <section class="card" aria-label="About and contact">
+      <h1 id="name">EUNWOO (Jade) CHOI</h1>
+      <p class="education">CS @ Seoul Nat’l Univ</p>
+      <nav class="contacts" aria-label="Contact Eunwoo">
+        <a class="email" href="mailto:eunvv8@snu.ac.kr">E. eunvv8@snu.ac.kr</a>
+        <a class="github" href="https://github.com/soarhigh03" target="_blank" rel="noopener noreferrer">GH. @soarhigh03</a>
+        <a class="linkedin" href="https://www.linkedin.com/in/eunwoo-jade-choi" target="_blank" rel="noopener noreferrer">L. linkedin.com/in/eunwoo-jade-choi</a>
+        <span class="instagram">IG. @eunvv8</span>
+      </nav>
+    </section>
+  </main>
 </body>
 </html>
