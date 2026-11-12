@@ -60,26 +60,26 @@
     }
 
     createAtlas(dpr) {
-      this.characters = ' .,:;irs*+tfLCH0#@';
+      this.characters = this.scene === 'fireworks' ? ' .:;+*xX#%@' : ' .,:;irs*+tfLCH0#@';
       const sw = this.tileW = Math.ceil(this.cellW * dpr);
       const sh = this.tileH = Math.ceil(this.cellH * dpr);
       this.atlas = document.createElement('canvas');
       this.atlas.width = sw * this.characters.length;
       this.atlas.height = sh;
       const a = this.atlas.getContext('2d');
-      a.font = `${this.cellH * dpr * .97}px "Anonymous Pro", monospace`;
+      a.font = `${this.scene === 'fireworks' ? 700 : 400} ${this.cellH * dpr * .97}px "Anonymous Pro", monospace`;
       a.textAlign = 'center';
       a.textBaseline = 'middle';
-      a.fillStyle = this.scene === 'bird' ? '#f0f4ed' : '#e4e4e4';
+      a.fillStyle = this.scene === 'fireworks' ? '#fff' : '#e4e4e4';
       for (let i = 1; i < this.characters.length; i++) {
-        a.globalAlpha = mix(.38, 1, i / (this.characters.length - 1));
+        a.globalAlpha = mix(this.scene === 'fireworks' ? .7 : .38, 1, i / (this.characters.length - 1));
         a.fillText(this.characters[i], (i + .5) * sw, sh * .49);
       }
     }
 
     displayTime() {
       if (this.stillTime !== null) return this.stillTime;
-      if (this.motion.matches) return { bird: 1.5, flower: 8, fireworks: 3.4 }[this.scene];
+      if (this.motion.matches) return { flower: 8, fireworks: 3.4 }[this.scene];
       return this.elapsed;
     }
 
@@ -119,22 +119,14 @@
       this.sampler.drawImage(this.source, 0, 0, this.cols, this.rows);
       const pixels = this.sampler.getImageData(0, 0, this.cols, this.rows).data;
       c.globalAlpha = 1;
-      c.fillStyle = this.scene === 'bird' ? '#347fc1' : this.scene === 'fireworks' ? '#1600f5' : '#000';
+      c.fillStyle = this.scene === 'fireworks' ? '#1600f5' : '#000';
       c.fillRect(0, 0, w, h);
-      if (this.scene === 'bird') {
-        const sky = c.createLinearGradient(0, 0, w, h);
-        sky.addColorStop(0, 'rgba(255,255,255,.035)');
-        sky.addColorStop(.55, 'rgba(255,255,255,0)');
-        sky.addColorStop(1, 'rgba(0,25,70,.1)');
-        c.fillStyle = sky;
-        c.fillRect(0, 0, w, h);
-      }
       // An atlas avoids thousands of text layout operations per frame.
       for (let y = 0; y < this.rows; y++) {
         for (let x = 0; x < this.cols; x++) {
           const sample = pixels[(y * this.cols + x) * 4];
           if (sample < (this.scene === 'fireworks' ? 4 : 10)) continue;
-          const brightness = 255 * Math.pow(sample / 255, this.scene === 'fireworks' ? .44 : .78);
+          const brightness = 255 * Math.pow(sample / 255, this.scene === 'fireworks' ? .38 : .78);
           const index = Math.min(this.characters.length - 1, Math.max(1, Math.floor(brightness / 256 * this.characters.length)));
           c.drawImage(this.atlas, index * this.tileW, 0, this.tileW, this.tileH,
             x * this.cellW, y * this.cellH, this.cellW, this.cellH);
@@ -157,82 +149,94 @@
       p.restore();
     }
 
-    bird(p, time, w, h) {
-      const t = time % 15;
-      const departure = smooth((t - 5.4) / 5.5);
-      const arrive = smooth(t / 1.1);
-      const stretch = smooth((t - 3.6) / 1.3);
-      const flap = stretch * (.5 + .5 * Math.sin((t - 4) * 10));
-      const size = Math.min(w * .38, h * .27);
-      const ground = h * .69;
-      // The perch stays behind as the bird takes flight.
-      p.strokeStyle = '#7e7e7e';
-      p.lineWidth = 2.4;
-      p.beginPath();
-      p.moveTo(-10, ground + size * .47);
-      p.bezierCurveTo(w * .22, ground + size * .25, w * .53, ground + size * .39, w * .73, ground + size * .12);
-      p.stroke();
-      p.lineWidth = 1.4;
-      p.beginPath();
-      p.moveTo(w * .17, ground + size * .35);
-      p.quadraticCurveTo(w * .26, ground + size * .07, w * .29, ground - size * .06);
-      p.stroke();
-      if (t > 11.3) return;
+    flowerStem(p, time, w, h, cx, cy, size) {
+      // The base stays rooted while the curved stem follows the bloom above.
+      const bend = Math.sin(time * .77) * size * .025;
+      const points = [
+        [w * .43, h + size * .08],
+        [w * .43 - size * .08 + bend, h * .8],
+        [cx - size * .12 + bend, cy + size * .75],
+        [cx, cy + size * .035],
+      ];
+      const stemAt = (t) => points[0].map((_, axis) =>
+        (1 - t) ** 3 * points[0][axis] + 3 * (1 - t) ** 2 * t * points[1][axis]
+        + 3 * (1 - t) * t * t * points[2][axis] + t ** 3 * points[3][axis]);
+      const leaves = [
+        { at: .32, side: -1, length: .76, width: .25, phase: 3.1 },
+        { at: .59, side: 1, length: .9, width: .29, phase: .5 },
+      ];
       p.save();
-      p.globalAlpha = arrive;
-      const bx = w * .48 + departure * w * .88;
-      const by = ground - size * .45 - departure * h * .92 + Math.sin(t * 1.7) * size * .008;
-      p.translate(bx, by);
-      p.scale(size, size);
-      p.rotate(mix(-.12, -.44, departure));
-      // Tail: individually shaded flight feathers.
-      for (let i = 0; i < 7; i++) {
-        this.ellipse(p, -.34 - i * .018, .34 + i * .018, .12, .42, -.68 + i * .055, 147 + i * 12);
-      }
-      const wing = (back) => {
-        const side = back ? -1 : 1;
-        const reach = .2 + stretch * .75;
+      p.lineJoin = 'round';
+      p.lineCap = 'round';
+      for (const leaf of leaves) {
+        const [x, y] = stemAt(leaf.at);
+        const flutter = Math.sin(time * 1.13 + leaf.phase) * .055
+          + Math.sin(time * .47 + leaf.phase) * .025;
+        const unfurl = mix(.62, 1, smooth((time - leaf.phase * .18) / 5));
+        const length = size * leaf.length;
+        const width = size * leaf.width;
         p.save();
-        p.translate(-.05, -.04);
-        p.rotate(side * (.32 + flap * 1.1));
-        for (let i = 0; i < 13; i++) {
-          const u = i / 12;
-          const x = -.2 - u * reach;
-          const y = -.13 - Math.sin(u * Math.PI * .7) * (.24 + flap * 1.15);
-          this.ellipse(p, x, y, .09 + (1 - u) * .085, .22 + u * .27,
-            -.45 - u * .63 - flap * .6, back ? 95 + i * 6 : 160 + i * 6);
+        p.translate(x, y);
+        p.scale(leaf.side * unfurl, unfurl);
+        p.rotate(-.6 + flutter);
+        // A raised midrib, uneven edges and a curling tip give each leaf volume.
+        const surface = (u, v) => {
+          const edge = Math.pow(Math.sin(Math.PI * u), .76)
+            * (1 + .035 * Math.sin(u * Math.PI * 17));
+          const fold = width * .22 * (1 - Math.abs(v)) * Math.sin(Math.PI * u);
+          const tip = length * (.12 + flutter) * u ** 3;
+          return [length * u, width * v * edge * .72 - fold - tip
+            + width * v * u * u * Math.sin(time * .8 + leaf.phase) * .16];
+        };
+        const rows = 24, cols = 10;
+        for (let i = 0; i < rows; i++) {
+          for (let j = 0; j < cols; j++) {
+            const u = i / rows, v = j / cols * 2 - 1;
+            const shade = 53 + Math.sin(Math.PI * u) * 44 + (1 - Math.abs(v)) * 34
+              + (v < 0 ? 23 : -9) + Math.sin(u * 45 + v * 6) * 7;
+            const corners = [surface(u, v), surface((i + 1) / rows, v),
+              surface((i + 1) / rows, (j + 1) / cols * 2 - 1), surface(u, (j + 1) / cols * 2 - 1)];
+            p.fillStyle = gray(shade);
+            p.strokeStyle = p.fillStyle;
+            p.lineWidth = .35;
+            p.beginPath();
+            corners.forEach(([px, py], k) => k ? p.lineTo(px, py) : p.moveTo(px, py));
+            p.closePath(); p.fill(); p.stroke();
+          }
         }
+        const trace = (points, light, thickness) => {
+          p.strokeStyle = gray(light); p.lineWidth = thickness; p.beginPath();
+          points.forEach(([px, py], i) => i ? p.lineTo(px, py) : p.moveTo(px, py));
+          p.stroke();
+        };
+        // Curved lateral veins branch from the midrib toward the leaf margin.
+        for (const side of [-1, 1]) {
+          trace(Array.from({ length: 25 }, (_, i) => surface(i / 24, side)), 107, .8);
+          for (let i = 1; i <= 7; i++) {
+            const start = i * .105;
+            trace(Array.from({ length: 9 }, (_, j) => {
+              const t = j / 8;
+              return surface(start + .16 * t, side * .88 * smooth(t));
+            }), side < 0 ? 177 : 135, 1.05);
+          }
+        }
+        trace(Array.from({ length: 25 }, (_, i) => surface(i / 24, 0)), 204, 1.5);
         p.restore();
-      };
-      if (stretch > .02) wing(true);
-      this.ellipse(p, -.03, .04, .39, .54, -.42, 246);
-      // Folded wing has layered coverts, rather than a flat silhouette.
-      this.ellipse(p, -.13, .09, .27, .4, -.58, 178);
-      for (let row = 0; row < 5; row++) {
-        for (let col = 0; col < 4; col++) {
-          this.ellipse(p, -.29 + col * .089 + row * .012, -.09 + row * .092,
-            .056, .13, -.52, 151 + col * 13 + row * 7);
-        }
       }
-      if (stretch > .02) wing(false);
-      this.ellipse(p, .19, -.31, .19, .32, .48, 242);
-      const look = Math.sin(t * 1.4) * .025 * (1 - stretch);
-      this.ellipse(p, .32, -.53 + look, .225, .215, -.1, 255);
-      p.fillStyle = '#c6c6c6';
-      p.beginPath();
-      p.moveTo(.49, -.56 + look); p.lineTo(.72, -.5 + look); p.lineTo(.49, -.46 + look); p.closePath(); p.fill();
-      p.fillStyle = '#111';
-      p.beginPath(); p.arc(.405, -.572 + look, .033, 0, TAU); p.fill();
-      p.fillStyle = '#eee';
-      p.beginPath(); p.arc(.412, -.583 + look, .009, 0, TAU); p.fill();
-      // Feet curl into the body after lift-off.
-      p.strokeStyle = '#b8b8b8';
-      p.lineWidth = .026;
-      const footY = mix(.8, .47, stretch);
-      for (const x of [-.07, .08]) {
-        p.beginPath(); p.moveTo(x, .43); p.lineTo(x + .06, footY);
-        p.lineTo(x + .2, footY + .035); p.moveTo(x + .06, footY);
-        p.lineTo(x - .04, footY + .06); p.stroke();
+      // Tapered segments and an offset highlight replace a uniformly flat stalk.
+      for (let i = 0; i < 44; i++) {
+        const t = i / 44;
+        const a = stemAt(t), b = stemAt((i + 1) / 44);
+        const radius = size * mix(.024, .011, t);
+        p.strokeStyle = gray(mix(79, 145, t)); p.lineWidth = radius * 2;
+        p.beginPath(); p.moveTo(...a); p.lineTo(...b); p.stroke();
+        p.strokeStyle = gray(mix(141, 201, t)); p.lineWidth = radius * .65;
+        p.beginPath(); p.moveTo(a[0] - radius * .38, a[1]);
+        p.lineTo(b[0] - radius * .38, b[1]); p.stroke();
+      }
+      for (const leaf of leaves) {
+        const [x, y] = stemAt(leaf.at);
+        this.ellipse(p, x, y, size * .027, size * .014, -.25, 155);
       }
       p.restore();
     }
@@ -244,23 +248,10 @@
       const size = Math.min(w * .405, h * .32);
       const cx = w * .5 + Math.sin(time * .77) * size * .045;
       const cy = h * .43;
+      this.flowerStem(p, time, w, h, cx, cy, size);
       p.save();
       p.translate(cx, cy);
       p.rotate(sway);
-      // Tapering, curved stem and two leaves.
-      const stem = p.createLinearGradient(0, 0, size * .1, h * .65);
-      stem.addColorStop(0, '#a8a8a8'); stem.addColorStop(1, '#242424');
-      p.strokeStyle = stem; p.lineWidth = Math.max(3, size * .035);
-      p.beginPath(); p.moveTo(0, size * .04);
-      p.bezierCurveTo(-size * .03, size * .65, -size * .2, size * 1.25, -size * .25, h * .75); p.stroke();
-      for (const [x, y, flip] of [[-.1, .97, 1], [-.17, 1.48, -1]]) {
-        p.save(); p.translate(size * x, size * y); p.scale(flip, 1);
-        p.fillStyle = '#474747'; p.beginPath(); p.moveTo(0, 0);
-        p.bezierCurveTo(size * .42, -size * .02, size * .53, -size * .34, size * .55, -size * .49);
-        p.bezierCurveTo(size * .13, -size * .39, size * .1, -size * .14, 0, 0); p.fill();
-        p.strokeStyle = '#818181'; p.lineWidth = .9; p.beginPath(); p.moveTo(0, 0);
-        p.quadraticCurveTo(size * .25, -size * .2, size * .55, -size * .49); p.stroke(); p.restore();
-      }
       // Each petal is a curved, ruffled 3D surface. Depth-sort the facets.
       const faces = [];
       const tilt = .48;
@@ -322,7 +313,7 @@
 
     fireworks(p, time, w, h) {
       p.globalCompositeOperation = 'lighter';
-      const spacing = 1.65;
+      const spacing = 1.5;
       const current = Math.floor(time / spacing);
       const s = Math.min(w, h * .8);
       for (let burst = Math.max(0, current - 3); burst <= current; burst++) {
@@ -342,7 +333,7 @@
         }
         const t = age - launch;
         if (t > 4.2) continue;
-        const count = 170;
+        const count = 210;
         const radius = s * (.37 + noise(burst + 9) * .16);
         for (let i = 0; i < count; i++) {
           const angle = i * 2.399963 + burst;
@@ -354,16 +345,16 @@
             const expansion = (1 - Math.exp(-at * 1.65)) / 1.1;
             return [cx + vx * expansion, cy + vy * expansion + at * at * 13];
           };
-          const lifetime = 2.45 + noise(i + burst * 13) * 1.4;
+          const lifetime = 2.8 + noise(i + burst * 13) * 1.4;
           const fade = clamp(1 - t / lifetime);
           if (!fade) continue;
-          const glimmer = .75 + .25 * Math.sin(t * 21 + i * 7);
-          const segments = 8;
+          const glimmer = .88 + .12 * Math.sin(t * 21 + i * 7);
+          const segments = 10;
           for (let j = segments; j >= 0; j--) {
             const at = Math.max(0, t - j * .036);
             const [x, y] = position(at);
             p.fillStyle = gray(255 * Math.sqrt(fade) * glimmer * (1 - j / (segments + 2)));
-            const dot = j === 0 ? 3.6 : 2.4;
+            const dot = j === 0 ? 4.8 : 3.1;
             p.fillRect(x, y, dot, dot);
           }
         }
