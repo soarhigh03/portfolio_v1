@@ -1,0 +1,13 @@
+# macOS folder metadata and resource forks
+.DS_Store
+._*
+
+# Local credentials and machine-specific agent settings
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+
+# Python bytecode from local utilities
+__pycache__/
+*.py[cod]

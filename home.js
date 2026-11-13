@@ -29,11 +29,13 @@
   const requested = params.get('scene');
   const scene = scenes.includes(requested) ? requested : scenes[Math.floor(Math.random() * scenes.length)];
   const time = params.has('time') ? Number(params.get('time')) : NaN;
+  // Keep URL-controlled preview values within a useful, numerically safe range.
+  const previewTime = Number.isFinite(time) ? Math.min(3600, Math.max(0, time)) : null;
   document.querySelector('.artwork').dataset.scene = scene;
   if (window.AsciiArtwork) {
     new window.AsciiArtwork(document.getElementById('ascii-art'), {
       scene,
-      stillTime: Number.isFinite(time) ? Math.max(0, time) : null,
+      stillTime: previewTime,
     });
   }
 })();

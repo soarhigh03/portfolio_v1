@@ -37,8 +37,17 @@ Open http://127.0.0.1:4173. Reload to randomly choose another scene. Nothing is 
 | `assets/images/home-name.svg` | Outlined name from Figma text node `26:208` |
 | `assets/images/home-education.svg` | Outlined education from Figma text node `26:210` |
 | `editorial.html` | Previous long-form portfolio, preserved for future work |
+| `app.js`, `media.js`, `styles.css` | Scripts, media mapping, and styles used only by `editorial.html` |
 | `EDITORIAL-README.md` | Previous portfolio documentation |
+| `exports/commit-portfolio-tasks.py` | One-time import utility, locked to the original Git baseline; not a routine commit command |
+| `tests/homepage.test.js` | Dependency-free checks for scene selection and preview input handling |
 
-For visual review, `?scene=flower` and `?scene=fireworks` select a scene. Add `&time=5.7` for a deterministic still at that animation time. Normal visits have no visible controls or query parameters.
+For visual review, `?scene=flower` and `?scene=fireworks` select a scene. Add `&time=5.7` for a deterministic still at that animation time. Preview time is clamped to 0–3600 seconds; non-finite values use normal animation. Normal visits have no visible controls or query parameters.
 
-Source requirements and the distinction between current display copy and biography evidence are recorded in `context/HOME_DESIGN.md` at the project root.
+## Development checks
+
+Run `node --test tests/*.test.js` (Node.js 18 or newer). The site itself has no package dependencies or build step.
+
+`.gitignore` excludes macOS metadata, local environment files (except `.env.example`), machine-specific agent settings, and Python bytecode. Keep credentials out of browser code: files published with this static site are public. Ignore rules do not remove files that have already been committed.
+
+Design requirements and biography source notes are maintained in the separate portfolio planning workspace, not in this site repository.

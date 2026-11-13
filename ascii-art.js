@@ -320,7 +320,10 @@
       const spacing = 1.5;
       const current = Math.floor(time / spacing);
       const s = Math.min(w, h * .8);
-      for (let burst = Math.max(0, current - 3); burst <= current; burst++) {
+      // A bounded counter also terminates when large timestamps lose integer precision.
+      for (let offset = 3; offset >= 0; offset--) {
+        const burst = current - offset;
+        if (burst < 0) continue;
         const age = time - burst * spacing;
         const cx = w * (.21 + noise(burst + 2) * .57);
         const cy = h * (.21 + noise(burst + 61) * .33);

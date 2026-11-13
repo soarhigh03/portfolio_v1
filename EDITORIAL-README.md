@@ -10,7 +10,7 @@ From this directory:
 python3 -m http.server 4173 --bind 127.0.0.1
 ```
 
-Open http://127.0.0.1:4173. The existing `CNAME` and hosting setup are retained. No deployment or Git push is performed by this change.
+Open http://127.0.0.1:4173/editorial.html. The existing `CNAME` and hosting setup are retained. No deployment or Git push is performed by this change.
 
 ## Design
 
@@ -22,7 +22,7 @@ Open http://127.0.0.1:4173. The existing `CNAME` and hosting setup are retained.
 
 ## Content and images
 
-- Main page content: `index.html`.
+- Archived page content: `editorial.html` (`index.html` is the current ASCII homepage).
 - Project detail content: `projects` at the top of `app.js`.
 - Styling and layout: `styles.css`.
 - Image and video mapping: `media.js`.
