@@ -115,7 +115,11 @@
       p.globalCompositeOperation = 'source-over';
       p.fillStyle = '#000';
       p.fillRect(0, 0, w, h);
+      p.save();
+      // Move the whole flower down, letting the canvas crop the lower foliage.
+      if (this.scene === 'flower') p.translate(0, h * .18);
       this[this.scene](p, time, w, h);
+      p.restore();
       this.sampler.drawImage(this.source, 0, 0, this.cols, this.rows);
       const pixels = this.sampler.getImageData(0, 0, this.cols, this.rows).data;
       c.globalAlpha = 1;
